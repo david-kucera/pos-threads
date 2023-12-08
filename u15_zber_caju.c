@@ -109,49 +109,49 @@ void *kontroluj(void *data) {
     }
 }
 
-//int main(int args, char **argv) {
-//    srand(time(NULL));
-//    int pocet_plantaznikov = 10;
-//    if(args > 1) {
-//        pocet_plantaznikov = atoi(argv[1]);
-//    }
-//    pthread_mutex_t sklad_mutex, plantaz_mutex;
-//    pthread_mutex_init(&sklad_mutex, NULL);
-//    pthread_mutex_init(&plantaz_mutex, NULL);
-//    pthread_cond_t miestoVSklade, niecoVSklade;
-//    pthread_cond_init(&miestoVSklade, NULL);
-//    pthread_cond_init(&niecoVSklade, NULL);
-//    _Bool data[5];
-//    SKLAD sklad = {5, 0, &data};
-//    int plantaz = 60;
-//    PLANTAZNICI plantaznikData[pocet_plantaznikov];
-//    KONTROLOR kontrolorData = {
-//            &sklad, &sklad_mutex, &miestoVSklade, &niecoVSklade
-//    };
-//    pthread_t plantaznik[pocet_plantaznikov];
-//    pthread_t kontrolor;
-//    for (int i = 0; i < pocet_plantaznikov; ++i) {
-//        plantaznikData[i].id = i;
-//        double r = (double)rand()/RAND_MAX;
-//        if(r < 0.4) plantaznikData[i].trieda = 1;
-//        else if(r < 0.75) plantaznikData[i].trieda = 2;
-//        else plantaznikData[i].trieda = 3;
-//        plantaznikData[i].sklad = &sklad;
-//        plantaznikData[i].plantaz = &plantaz;
-//        plantaznikData[i].sklad_mutex = &sklad_mutex;
-//        plantaznikData[i].plantaz_mutex = &plantaz_mutex;
-//        plantaznikData[i].miesto_v_sklade = &miestoVSklade;
-//        plantaznikData[i].nieco_v_sklade = &niecoVSklade;
-//        pthread_create(&plantaznik[i], NULL, zbieraj_caj, &plantaznikData[i]);
-//    }
-//    pthread_create(&kontrolor, NULL, kontroluj, &kontrolorData);
-//    pthread_join(kontrolor, NULL);
-//    for (int i = 0; i < pocet_plantaznikov; ++i) {
-//        pthread_join(plantaznik[i], NULL);
-//    }
-//    pthread_mutex_destroy(&sklad_mutex);
-//    pthread_mutex_destroy(&plantaz_mutex);
-//    pthread_cond_destroy(&miestoVSklade);
-//    pthread_cond_destroy(&niecoVSklade);
-//    return 0;
-//}
+int main(int args, char **argv) {
+    srand(time(NULL));
+    int pocet_plantaznikov = 10;
+    if(args > 1) {
+        pocet_plantaznikov = atoi(argv[1]);
+    }
+    pthread_mutex_t sklad_mutex, plantaz_mutex;
+    pthread_mutex_init(&sklad_mutex, NULL);
+    pthread_mutex_init(&plantaz_mutex, NULL);
+    pthread_cond_t miestoVSklade, niecoVSklade;
+    pthread_cond_init(&miestoVSklade, NULL);
+    pthread_cond_init(&niecoVSklade, NULL);
+    _Bool data[5];
+    SKLAD sklad = {5, 0, &data};
+    int plantaz = 60;
+    PLANTAZNICI plantaznikData[pocet_plantaznikov];
+    KONTROLOR kontrolorData = {
+            &sklad, &sklad_mutex, &miestoVSklade, &niecoVSklade
+    };
+    pthread_t plantaznik[pocet_plantaznikov];
+    pthread_t kontrolor;
+    for (int i = 0; i < pocet_plantaznikov; ++i) {
+        plantaznikData[i].id = i;
+        double r = (double)rand()/RAND_MAX;
+        if(r < 0.4) plantaznikData[i].trieda = 1;
+        else if(r < 0.75) plantaznikData[i].trieda = 2;
+        else plantaznikData[i].trieda = 3;
+        plantaznikData[i].sklad = &sklad;
+        plantaznikData[i].plantaz = &plantaz;
+        plantaznikData[i].sklad_mutex = &sklad_mutex;
+        plantaznikData[i].plantaz_mutex = &plantaz_mutex;
+        plantaznikData[i].miesto_v_sklade = &miestoVSklade;
+        plantaznikData[i].nieco_v_sklade = &niecoVSklade;
+        pthread_create(&plantaznik[i], NULL, zbieraj_caj, &plantaznikData[i]);
+    }
+    pthread_create(&kontrolor, NULL, kontroluj, &kontrolorData);
+    pthread_join(kontrolor, NULL);
+    for (int i = 0; i < pocet_plantaznikov; ++i) {
+        pthread_join(plantaznik[i], NULL);
+    }
+    pthread_mutex_destroy(&sklad_mutex);
+    pthread_mutex_destroy(&plantaz_mutex);
+    pthread_cond_destroy(&miestoVSklade);
+    pthread_cond_destroy(&niecoVSklade);
+    return 0;
+}
