@@ -5,27 +5,27 @@
 #include <time.h>
 #include <unistd.h>
 
-typedef struct pult {
+typedef struct {
     bool pult;
     pthread_mutex_t mutex;
     pthread_cond_t odober;
     pthread_cond_t pridaj;
 } PULT;
 
-typedef struct zakaznik {
+typedef struct {
     signed char cas_prichodu;
     unsigned int id;
     PULT * pult;
 } ZAKAZNIK;
 
-typedef struct barman {
+typedef struct {
     PULT * pult;
     unsigned int pocet_drinkov;
 } BARMAN;
 
 void * barman_fun(void * arg) {
     BARMAN * data = arg;
-    printf("Barman zacina sichtu! Bude robit %u drinkov!\n",data->pocet_drinkov);
+    printf("Barman zacina sichtu! Bude robit %u drinkov!\n", data->pocet_drinkov);
     for (int i = 1; i <= data->pocet_drinkov; ++i) {
         printf("Pripravujem %d. drink typu",i);
         if(rand()%2) {
@@ -46,6 +46,7 @@ void * barman_fun(void * arg) {
     printf("Barman skoncil sichtu!\n");
     return NULL;
 }
+
 void * zakaznik_fun(void * arg) {
     ZAKAZNIK * data = arg;
     printf("Zakaznik %u ide do baru! Bude mu to trvat %hhd sekund!\n",data->id,data->cas_prichodu);
@@ -64,33 +65,39 @@ void * zakaznik_fun(void * arg) {
 
 int main(int argc, char * argv[]) {
     srand(time(NULL));
+
     PULT pult;
     pult.pult=false;
     pthread_mutex_init(&pult.mutex, NULL);
     pthread_cond_init(&pult.pridaj,NULL);
     pthread_cond_init(&pult.odober,NULL);
+
+    pthread_t barman;
     BARMAN dataB = {&pult, 10};
     if(argc > 1 ) {
         dataB.pocet_drinkov = atoi(argv[1]);
     }
-    pthread_t barman;
+    pthread_create(&barman, NULL, barman_fun, &dataB);
+
     pthread_t zakaznici[dataB.pocet_drinkov];
     ZAKAZNIK dataZ[dataB.pocet_drinkov];
-    pthread_create(&barman, NULL, barman_fun, &dataB);
     for (unsigned int i = 0; i < dataB.pocet_drinkov; ++i) {
         dataZ[i].id=i+1;
         dataZ[i].pult=&pult;
         dataZ[i].cas_prichodu= rand() % 8 + 1;
         pthread_create(&zakaznici[i], NULL, zakaznik_fun, &dataZ[i]);
     }
+
     printf("Bar otvoreny!\n");
     pthread_join(barman,NULL);
     for (int i = 0; i < dataB.pocet_drinkov; ++i) {
         pthread_join(zakaznici[i],NULL);
     }
     printf("Bar zatvoreny!\n");
+
     pthread_mutex_destroy(&pult.mutex);
     pthread_cond_destroy(&pult.pridaj);
     pthread_cond_destroy(&pult.odober);
+
     return 0;
 }
