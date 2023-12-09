@@ -6,10 +6,10 @@
 #include <unistd.h>
 
 typedef struct {
-    bool pult;
+    bool je_na_pulte_drink;
     pthread_mutex_t mutex;
-    pthread_cond_t odober;
-    pthread_cond_t pridaj;
+    pthread_cond_t odober_drink;
+    pthread_cond_t pridaj_drink;
 } PULT;
 
 typedef struct {
@@ -36,11 +36,11 @@ void * barman_fun(void * arg) {
             sleep(1);
         }
         pthread_mutex_lock(&data->pult->mutex);
-        while(data->pult->pult) {
-            pthread_cond_wait(&data->pult->pridaj,&data->pult->mutex);
+        while(data->pult->je_na_pulte_drink) {
+            pthread_cond_wait(&data->pult->pridaj_drink, &data->pult->mutex);
         }
-        data->pult->pult=true;
-        pthread_cond_signal(&data->pult->odober);
+        data->pult->je_na_pulte_drink=true;
+        pthread_cond_signal(&data->pult->odober_drink);
         pthread_mutex_unlock(&data->pult->mutex);
     }
     printf("Barman skoncil sichtu!\n");
@@ -53,11 +53,11 @@ void * zakaznik_fun(void * arg) {
     sleep(data->cas_prichodu);
     printf("Zakaznik %u je v bare!\n",data->id);
     pthread_mutex_lock(&data->pult->mutex);
-    while(!data->pult->pult) {
-        pthread_cond_wait(&data->pult->odober,&data->pult->mutex);
+    while(!data->pult->je_na_pulte_drink) {
+        pthread_cond_wait(&data->pult->odober_drink, &data->pult->mutex);
     }
-    data->pult->pult=false;
-    pthread_cond_signal(&data->pult->pridaj);
+    data->pult->je_na_pulte_drink=false;
+    pthread_cond_signal(&data->pult->pridaj_drink);
     pthread_mutex_unlock(&data->pult->mutex);
     printf("Zakaznik %u si dava svoj drink a konci!\n",data->id);
     return NULL;
@@ -66,12 +66,14 @@ void * zakaznik_fun(void * arg) {
 int main(int argc, char * argv[]) {
     srand(time(NULL));
 
+    // Inicializacia pultu
     PULT pult;
-    pult.pult=false;
+    pult.je_na_pulte_drink = false;
     pthread_mutex_init(&pult.mutex, NULL);
-    pthread_cond_init(&pult.pridaj,NULL);
-    pthread_cond_init(&pult.odober,NULL);
+    pthread_cond_init(&pult.pridaj_drink, NULL);
+    pthread_cond_init(&pult.odober_drink, NULL);
 
+    // Inicializacia barmana spolu s jeho vlaknom
     pthread_t barman;
     BARMAN dataB = {&pult, 10};
     if(argc > 1 ) {
@@ -79,6 +81,7 @@ int main(int argc, char * argv[]) {
     }
     pthread_create(&barman, NULL, barman_fun, &dataB);
 
+    // Inicializacia zakaznikov spolu s ich vlaknami
     pthread_t zakaznici[dataB.pocet_drinkov];
     ZAKAZNIK dataZ[dataB.pocet_drinkov];
     for (unsigned int i = 0; i < dataB.pocet_drinkov; ++i) {
@@ -88,16 +91,18 @@ int main(int argc, char * argv[]) {
         pthread_create(&zakaznici[i], NULL, zakaznik_fun, &dataZ[i]);
     }
 
+    // Spustenie simulacie a spojenie vlakien
     printf("Bar otvoreny!\n");
     pthread_join(barman,NULL);
     for (int i = 0; i < dataB.pocet_drinkov; ++i) {
         pthread_join(zakaznici[i],NULL);
     }
-    printf("Bar zatvoreny!\n");
 
+    // Skoncenie simulacie, zrusenie vlakien
+    printf("Bar zatvoreny!\n");
     pthread_mutex_destroy(&pult.mutex);
-    pthread_cond_destroy(&pult.pridaj);
-    pthread_cond_destroy(&pult.odober);
+    pthread_cond_destroy(&pult.pridaj_drink);
+    pthread_cond_destroy(&pult.odober_drink);
 
     return 0;
 }
