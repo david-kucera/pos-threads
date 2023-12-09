@@ -52,10 +52,10 @@ void * casnik_fun(void * arg) {
         while (data->stolik->akt_pocet == 0) {
             pthread_cond_wait(&data->stolik->je_prazdny, &data->stolik->mutex);
         }
-        printf("Casnik %i odniesol jedlo.\n", data->id_casnika);
         data->stolik->akt_pocet--;
         pthread_cond_signal(&data->stolik->je_plny);
         pthread_mutex_unlock(&data->stolik->mutex);
+        printf("Casnik %i odniesol jedlo, celkovy pocet jedal na stole je %i.\n", data->id_casnika, data->stolik->akt_pocet);
         int cas_roznosu = (rand() % 4) + 2;
         sleep(cas_roznosu);
     }
