@@ -6,7 +6,7 @@
 #define POCET_HUB 15
 #define KAPACITA_PULTU 5
 
-int n;
+int n, skonceni_hubari;
 
 typedef struct pult {
     int aktualny_pocet;
@@ -80,13 +80,14 @@ void * hubar_fun(void * arg) {
         data->zarobok += odmena;
     }
     printf("Hubar %i vylozil vsetky svoje huby a konci. Celkovo zarobil %i centov.\n", data->id, data->zarobok);
+    skonceni_hubari++;
     return NULL;
 }
 
 void * susic_fun(void * arg) {
     SUSIC * data = (SUSIC *)arg;
     printf("Susic zacina svoju pracu!\n");
-    for (int i = 0; i < n*POCET_HUB; ++i) {
+    while (skonceni_hubari != n) {
         pthread_mutex_lock(&data->pult->mutex);
         while (data->pult->aktualny_pocet == 0) {
             printf("Susic caka na doplnenie hub!\n");
@@ -135,6 +136,7 @@ int main(int argc, char * argv[]) {
     }
 
     printf("Cas susenia nastal, hor sa na to!\n");
+    skonceni_hubari = 0;
     PULT pult;
     init_pult(&pult);
 
@@ -176,6 +178,9 @@ int main(int argc, char * argv[]) {
     }
 
     printf("Je nasusene! Parada!\n");
-    // TODO statistika zarobkov
+    for (int i = 0; i < n; ++i) {
+        printf("Hubar %i si zarobil celkovo %i centov.\n", hubar_data[i].id, hubar_data[i].zarobok);
+    }
+    destroy_pult(&pult);
     return 0;
 }
