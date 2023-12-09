@@ -114,5 +114,8 @@ int main(int argc, char * argv[]) {
 
     pthread_join(consumer, NULL);
 
+    pthread_mutex_destroy(&buffer.mutex);
+    pthread_cond_destroy(&buffer.condition);
+
     return 0;
 }
