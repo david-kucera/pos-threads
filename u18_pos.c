@@ -156,7 +156,7 @@ int main(int argc, char * argv[]) {
     }
 
     printf("Get the resurrection potion! Quest is now FINISHED!\n");
-    // todo statistiky predmetov pre zamerania
+
     destroy_pult(&pult);
     return 0;
 }
