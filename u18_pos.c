@@ -47,14 +47,16 @@ void * hrdinovia_fun(void * arg) {
 
     sleep(data->cas_trvania_liecitel);
     printf("Hrdina %i. prisiel ku liecitelovi.\n", data->id);
+
     pthread_mutex_lock(&data->pult->mutex);
     while (data->pult->aktualny_pocet == 0) {
         printf("Hrdina %i caka, lebo na pulte nic nie je!\n", data->id);
         pthread_cond_wait(&data->pult->je_prazdny, &data->pult->mutex);
     }
+
+    printf("Hrdina %i si kupil lektvar a odchadza...\n", data->id);
     pthread_cond_signal(&data->pult->je_plny);
     data->pult->aktualny_pocet--;
-    printf("Hrdina %i si kupil lektvar a odchadza...\n", data->id);
     pthread_mutex_unlock(&data->pult->mutex);
     sleep(data->cas_trvania_zadavatel);
 
@@ -99,6 +101,7 @@ void * liecitel_fun(void * arg) {
 }
 
 int main(int argc, char * argv[]) {
+    srand(time(NULL));
     if(argc != 3) {
         n = 12;
         k = 5;
@@ -140,7 +143,7 @@ int main(int argc, char * argv[]) {
         hrdinovia_data[i].cas_trvania_liecitel = cas_liecitel;
         hrdinovia_data[i].cas_trvania_zadavatel = cas_zadavatel;
         hrdinovia_data[i].dostal_talizman = false;
-        pthread_create(&hrdinoviat, NULL, hrdinovia_fun, &hrdinovia_data[i]);
+        pthread_create(&hrdinoviat[i], NULL, hrdinovia_fun, &hrdinovia_data[i]);
     }
 
     LIECITEL liecitel_data;
