@@ -41,49 +41,48 @@ void destroy_zastavka(ZASTAVKA * zastavka) {
 void * autobus_fun(void * arg) {
     AUTOBUS * data = (AUTOBUS *)arg;
 
-    while (data->zastavka->pocet_cestujucich != 0) {
-        data->pocet_cestujucich = 0;
+    data->pocet_cestujucich = 0;
 
-        pthread_mutex_lock(&data->zastavka->mutex);
-        while (data->zastavka->obsadena) {
-            printf("Zastavka je obsadena! Autobus %i caka na uvolnenie zastavky.\n", data->id);
-            pthread_cond_wait(&data->zastavka->je_obsadena, &data->zastavka->mutex);
-        }
-
-        printf("Autobus %i prichadza na zastavku. Jeho kapacita je %i osob.\n", data->id, data->kapacita);
-        data->zastavka->obsadena = true;
-        if (data->zastavka->pocet_cestujucich > data->kapacita) {
-            data->zastavka->pocet_cestujucich -= data->kapacita;
-            data->pocet_cestujucich = data->kapacita;
-        } else {
-            data->pocet_cestujucich = data->zastavka->pocet_cestujucich;
-            data->zastavka->pocet_cestujucich = 0;
-        }
-
-        int sanca_na_pokazenie = rand() % 100;
-
-        if (sanca_na_pokazenie < 50) {
-            printf("Autobus %i sa pokazil! Opravar ho ide orpavit...\n", data->id);
-            sleep(rand() % 5 + 1);
-            printf("Opravar opravil autobus!\n");
-        }
-
-        // nastupovanie cestujucich
-        for (int i = 0; i < data->pocet_cestujucich; ++i) {
-            int cas = (rand() % 20 + 5)/10;
-            printf("nastupuje %i. cestujuci...\n", i + 1);
-            sleep(cas);
-        }
-        printf("Vsetci cestujuci nastupili do autobusu %i!\n", data->id);
-        data->zastavka->obsadena = false;
-        pthread_cond_signal(&data->zastavka->je_prazdna);
-        pthread_mutex_unlock(&data->zastavka->mutex);
-
-        // cesta autobusus na finalnu stanicu
-        int cas = rand() % 12 + 8;
-        sleep(cas);
-        printf("Autobus %i prisiel do finalnej destinacie!\n", data->id);
+    pthread_mutex_lock(&data->zastavka->mutex);
+    while (data->zastavka->obsadena) {
+        printf("Zastavka je obsadena! Autobus %i caka na uvolnenie zastavky.\n", data->id);
+        pthread_cond_wait(&data->zastavka->je_obsadena, &data->zastavka->mutex);
     }
+
+    printf("Autobus %i prichadza na zastavku. Jeho kapacita je %i osob.\n", data->id, data->kapacita);
+    data->zastavka->obsadena = true;
+    if (data->zastavka->pocet_cestujucich > data->kapacita) {
+        data->zastavka->pocet_cestujucich -= data->kapacita;
+        data->pocet_cestujucich = data->kapacita;
+    } else {
+        data->pocet_cestujucich = data->zastavka->pocet_cestujucich;
+        data->zastavka->pocet_cestujucich = 0;
+    }
+
+    int sanca_na_pokazenie = rand() % 100;
+
+    if (sanca_na_pokazenie < 50) {
+        printf("Autobus %i sa pokazil! Opravar ho ide opravit...\n", data->id);
+        sleep(rand() % 5 + 1);
+        printf("Opravar opravil autobus!\n");
+    }
+
+    // nastupovanie cestujucich
+    for (int i = 0; i < data->pocet_cestujucich; ++i) {
+        int cas = (rand() % 20 + 5)/10;
+        printf("nastupuje %i. cestujuci...\n", i + 1);
+        sleep(cas);
+    }
+    printf("Vsetci cestujuci nastupili do autobusu %i!\n", data->id);
+    data->zastavka->obsadena = false;
+    pthread_cond_signal(&data->zastavka->je_prazdna);
+    pthread_mutex_unlock(&data->zastavka->mutex);
+
+    // cesta autobusus na finalnu stanicu
+    int cas = rand() % 12 + 8;
+    sleep(cas);
+    printf("Autobus %i prisiel do finalnej destinacie!\n", data->id);
+
     return NULL;
 }
 
@@ -92,7 +91,7 @@ int main(int argc, char * argv[]) {
 
     // Pocet autobusvo mozeme ziskat z argumentu programu, inak ich bude 40
     if (argc != 3) {
-        pocet_cestujucich = 40;
+        pocet_cestujucich = 30;
     } else {
         pocet_cestujucich = atoi(argv[1]);
     }
@@ -105,6 +104,9 @@ int main(int argc, char * argv[]) {
     init_zastavka(&zastavka);
 
     int pocet_autobusov = pocet_cestujucich / 20;
+    if (pocet_cestujucich % 20 != 0) {
+        pocet_autobusov++;
+    }
 
     AUTOBUS autobus_data[pocet_autobusov];
     pthread_t autobusy[pocet_autobusov];
