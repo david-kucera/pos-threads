@@ -10,32 +10,32 @@ typedef struct buffer {
     int data[BUFFER_SIZE];
     int count;
     pthread_mutex_t mutex;
-    pthread_cond_t cond;
+    pthread_cond_t je_prazdny;
 } BUFFER;
 
 void init_buffer(BUFFER * buf) {
     buf->count = 0;
     pthread_mutex_init(&buf->mutex, NULL);
-    pthread_cond_init(&buf->cond, NULL);
+    pthread_cond_init(&buf->je_prazdny, NULL);
 }
 
 void push_buffer(BUFFER *buf, int value) {
     pthread_mutex_lock(&buf->mutex);
     while (buf->count >= BUFFER_SIZE) {
-        pthread_cond_wait(&buf->cond, &buf->mutex);
+        pthread_cond_wait(&buf->je_prazdny, &buf->mutex);
     }
     buf->data[buf->count++] = value;
-    pthread_cond_signal(&buf->cond);
+    pthread_cond_signal(&buf->je_prazdny);
     pthread_mutex_unlock(&buf->mutex);
 }
 
 int pop_buffer(BUFFER * buf) {
     pthread_mutex_lock(&buf->mutex);
     while (buf->count <= 0) {
-        pthread_cond_wait(&buf->cond, &buf->mutex);
+        pthread_cond_wait(&buf->je_prazdny, &buf->mutex);
     }
     int value = buf->data[--buf->count];
-    pthread_cond_signal(&buf->cond);
+    pthread_cond_signal(&buf->je_prazdny);
     pthread_mutex_unlock(&buf->mutex);
     return value;
 }

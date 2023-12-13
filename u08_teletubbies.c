@@ -11,7 +11,7 @@ typedef struct maziar {
     int data[MAX_MAZIAR];
 
     pthread_mutex_t mutex;
-    pthread_cond_t cond;
+    pthread_cond_t je_prazdny;
 } MAZIAR;
 
 void init_maziar(MAZIAR *maziar) {
@@ -19,16 +19,16 @@ void init_maziar(MAZIAR *maziar) {
     maziar->pocet_neparnych = 0;
     maziar->pocet_parnych = 0;
     pthread_mutex_init(&maziar->mutex, NULL);
-    pthread_cond_init(&maziar->cond, NULL);
+    pthread_cond_init(&maziar->je_prazdny, NULL);
 }
 
 void push_maziar(MAZIAR * maziar, int value) {
     pthread_mutex_lock(&maziar->mutex);
     while (maziar->size >= MAX_MAZIAR) {
-        pthread_cond_wait(&maziar->cond, &maziar->mutex);
+        pthread_cond_wait(&maziar->je_prazdny, &maziar->mutex);
     }
     maziar->data[maziar->size++] = value;
-    pthread_cond_signal(&maziar->cond);
+    pthread_cond_signal(&maziar->je_prazdny);
     pthread_mutex_unlock(&maziar->mutex);
 }
 
@@ -36,10 +36,10 @@ int pop_maziar(MAZIAR * maziar) {
     pthread_mutex_lock(&maziar->mutex);
 
     while (maziar->size <= 0) {
-        pthread_cond_wait(&maziar->cond, &maziar->mutex);
+        pthread_cond_wait(&maziar->je_prazdny, &maziar->mutex);
     }
     int value = maziar->data[--maziar->size];
-    pthread_cond_signal(&maziar->cond);
+    pthread_cond_signal(&maziar->je_prazdny);
     pthread_mutex_unlock(&maziar->mutex);
     return value;
 }
@@ -97,6 +97,6 @@ int main(int argc, char * argv[]) {
 
 
     pthread_mutex_destroy(&maziar.mutex);
-    pthread_cond_destroy(&maziar.cond);
+    pthread_cond_destroy(&maziar.je_prazdny);
     return 0;
 }
